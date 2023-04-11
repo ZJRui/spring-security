@@ -210,6 +210,14 @@ public class FilterChainProxy extends GenericFilterBean {
 			throws IOException, ServletException {
 		FirewalledRequest firewallRequest = this.firewall.getFirewalledRequest((HttpServletRequest) request);
 		HttpServletResponse firewallResponse = this.firewall.getFirewalledResponse((HttpServletResponse) response);
+		/**
+		 * filterChainProxy间接继承了Filter，可以作为真正的过滤器使用。它会携带若干条过滤器链，并在
+		 * 承担过滤器职责时，将其派发到所有过滤器链的每一个过滤器上。
+		 *
+		 *
+		 * 按照配置的RequestMatcher 决定每个请求会经过哪些过滤器
+		 *
+		 */
 		List<Filter> filters = getFilters(firewallRequest);
 		if (filters == null || filters.size() == 0) {
 			if (logger.isTraceEnabled()) {
@@ -230,6 +238,9 @@ public class FilterChainProxy extends GenericFilterBean {
 			firewallRequest.reset();
 			chain.doFilter(req, res);
 		};
+		/**
+		 * 所有的 filter合并成一条虚拟过滤器链表 VirtualFilterChainDecorator VirtualFilterChain
+		 */
 		this.filterChainDecorator.decorate(reset, filters).doFilter(firewallRequest, firewallResponse);
 	}
 

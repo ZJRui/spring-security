@@ -64,6 +64,7 @@ import org.springframework.security.web.context.AbstractSecurityWebApplicationIn
  * @see EnableWebSecurity
  * @see WebSecurity
  */
+@SuppressWarnings("all")
 @Configuration(proxyBeanMethods = false)
 public class WebSecurityConfiguration implements ImportAware, BeanClassLoaderAware {
 
@@ -103,6 +104,25 @@ public class WebSecurityConfiguration implements ImportAware, BeanClassLoaderAwa
 	 */
 	@Bean(name = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME)
 	public Filter springSecurityFilterChain() throws Exception {
+		/**
+		 * 返回一个Filter对象，这个对象是FilterChainProxy的实例
+		 *
+		 * 在SpringBoot的自动装配中 SecurityFilterAutoConfiguration。 如果容器中没有springSecurityFilterChain ，则进行自动装配
+		 * @Bean
+		 * @ConditionalOnBean(name = “springSecurityFilterChain”)
+		 * 	public DelegatingFilterProxyRegistrationBean securityFilterChainRegistration(
+		 * 			SecurityProperties securityProperties) {
+		 * 		DelegatingFilterProxyRegistrationBean registration = new DelegatingFilterProxyRegistrationBean(
+		 * 				DEFAULT_FILTER_NAME);
+		 * 		registration.setOrder(securityProperties.getFilter().getOrder());
+		 * 		registration.setDispatcherTypes(getDispatcherTypes(securityProperties));
+		 * 		return registration;
+		 *    }
+		 *
+		 *
+		 * 如果没有使用自动装配 则可以使用 @EnabelWebSecurity 注解,他会import 当前的WebSecurityConfiguration，从而@Bean springSecurityFilterChain
+		 *
+		 */
 		boolean hasFilterChain = !this.securityFilterChains.isEmpty();
 		if (!hasFilterChain) {
 			this.webSecurity.addSecurityFilterChainBuilder(() -> {
@@ -145,6 +165,14 @@ public class WebSecurityConfiguration implements ImportAware, BeanClassLoaderAwa
 	@Autowired(required = false)
 	public void setFilterChainProxySecurityConfigurer(ObjectPostProcessor<Object> objectPostProcessor,
 			ConfigurableListableBeanFactory beanFactory) throws Exception {
+		/**
+		 * WebSecurityConfiguration 用于初始化WebSecurity配置 。首先在 setFilterChainProxySecurityConfigurer 方法中， 他
+		 * 以配置spring security时继承自WebSecurityConfigurerAdapter的配置类来初始化一个SecurityConfigurer列表。
+		 *
+		 * Spring Security 以SecurityConfigurer列表为依据，启用所需的安全策略
+		 *
+		 */
+
 		this.webSecurity = objectPostProcessor.postProcess(new WebSecurity(objectPostProcessor));
 		if (this.debugEnabled != null) {
 			this.webSecurity.debug(this.debugEnabled);
