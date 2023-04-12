@@ -80,10 +80,46 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * "https://tools.ietf.org/html/rfc6749#section-4.1.1">Section 4.1.1 Authorization Request
  * (Authorization Code)</a>
  */
+@SuppressWarnings("all")
 public class OAuth2AuthorizationRequestRedirectFilter extends OncePerRequestFilter {
+	/**
+	 *
+	 * 此过滤器通过将最终用户的用户代理重定向到授权服务器的授权端点来启动授权代码授予流程。
+	 * 它构建 OAuth 2.0 授权请求，用作指向授权端点的重定向 URI。 重定向 URI 将包括客户端标识符、请求的范围、状态、响应类型和重定向 URI，
+	 * 授权服务器将在最终用户授予（或拒绝）访问权限后将用户代理发送回该重定向 URI（ 资源所有者）。
+	 * 默认情况下，此过滤器使用默认的 OAuth2AuthorizationRequestResolver 响应 URI /oauth2/authorization/{registrationId}
+	 * 中的授权请求。 URI 模板变量 {registrationId} 表示用于发起 OAuth 2.0 授权请求的客户端的注册标识符。
+	 * 可以通过构造函数 OAuth2AuthorizationRequestRedirectFilter(ClientRegistrationRepository, String) 覆盖默认的
+	 * 基本 URI /oauth2/authorization，或者可以向构造函数 OAuth2AuthorizationRequestRedirectFilter
+	 * (OAuth2AuthorizationRequestResolver) 提供 OAuth2AuthorizationRequestResolver 以覆盖授权请求的解析。
+	 *
+	 *
+	 */
 
 	/**
 	 * The default base {@code URI} used for authorization requests.
+	 *
+	 * 比如在 org.springframework.security.config.oauth2.client.CommonOAuth2Provider#GITHUB 中 github的认证 URL就是
+	 * builder.authorizationUri("https://github.com/login/oauth/authorize");
+	 *
+	 *
+	 * 访问http://localhost:8080/hello地
+	 * 址，由于该地址需要认证后才能访问，此时服务端会返回302，要求
+	 * 浏 览 器 重 定 向 到
+	 * http://localhost:8080/oauth2/authorization/github 页 面 。 不
+	 * 同的第三方登录只是地址的最后一项不同，如果是Google第三方登
+	 * 录，则登录页面是/oauth2/authorization/google。
+	 *
+	 *
+	 * 当浏览器去请求该页面时，服务端检测到这是一个授权请求，于
+	 * 是 再 次 返 回 302 ， 要 求 浏 览 器 重 定 向 到 GitHub 授 权 页 面
+	 * https://github.com/login/oauth/authorize?
+	 * response_type=code&client_id=aa9e79846df9cbc6201f&scope
+	 * =read:user&state=vY8C
+	 * JuRg2WlROVyo4mBZUn__1ksl6ieBjkmOQyGYA0A%3D&red
+	 * irect_uri=http://localhost:8080/login/oauth2/code/github
+	 *
+	 *
 	 */
 	public static final String DEFAULT_AUTHORIZATION_REQUEST_BASE_URI = "/oauth2/authorization";
 
@@ -169,6 +205,16 @@ public class OAuth2AuthorizationRequestRedirectFilter extends OncePerRequestFilt
 		try {
 			OAuth2AuthorizationRequest authorizationRequest = this.authorizationRequestResolver.resolve(request);
 			if (authorizationRequest != null) {
+				/**
+				 * 当浏览器去请求该页面时，服务端检测到这是一个授权请求，于
+				 * 是 再 次 返 回 302 ， 要 求 浏 览 器 重 定 向 到 GitHub 授 权 页 面
+				 * https://github.com/login/oauth/authorize?
+				 * response_type=code&client_id=aa9e79846df9cbc6201f&scope
+				 * =read:user&state=vY8C
+				 * JuRg2WlROVyo4mBZUn__1ksl6ieBjkmOQyGYA0A%3D&red
+				 * irect_uri=http://localhost:8080/login/oauth2/code/github
+				 *
+				 */
 				this.sendRedirectForAuthorization(request, response, authorizationRequest);
 				return;
 			}

@@ -99,7 +99,7 @@ public class AuthenticationManagerFactoryBean implements FactoryBean<Authenticat
 		this.observationRegistry = observationRegistry;
 	}
 
-	private <T> T getBeanOrNull(Class<T> type) {
+	private <T> T 	getBeanOrNull(Class<T> type) {
 		try {
 			return this.bf.getBean(type);
 		}

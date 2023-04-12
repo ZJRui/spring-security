@@ -173,6 +173,9 @@ public final class DefaultOAuth2AuthorizedClientManager implements OAuth2Authori
 				.build();
 		// @formatter:on
 		try {
+			//客户端的请求是由WebClient发起的，底层真正发起HTTP请求
+			// 的 依 然 是 RestTemplate
+			// 由WebClient发起的请求会在这里被拦截下来
 			authorizedClient = this.authorizedClientProvider.authorize(authorizationContext);
 		}
 		catch (OAuth2AuthorizationException ex) {
